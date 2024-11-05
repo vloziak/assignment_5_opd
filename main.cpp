@@ -9,7 +9,7 @@ using namespace std;
 bool gameOver;
 const int width = 20;
 const int height = 17;
-int x, y, fruitX, fruitY, score;
+int x, y, fruitX, fruitY, bombX, bombY, score;
 int tailX[100], tailY[100];
 int nTail;
 enum Direction { STOP = 0, LEFT, RIGHT, UP, DOWN };
@@ -22,6 +22,8 @@ void Setup() {
     y = height / 2;
     fruitX = rand() % width;
     fruitY = rand() % height;
+    bombX = rand() % width;
+    bombY = rand() % height;
     score = 0;
 }
 
@@ -36,14 +38,16 @@ void Draw(const string &playerName) {
             if (j == 0)
                 cout << "|";
             if (i == y && j == x)
-                cout << "O";  // Snake head
+                cout << "O";
             else if (i == fruitY && j == fruitX)
-                cout << "F";  // Fruit
+                cout << "F";
+            else if (i == bombY && j == bombX)
+                cout << "B";
             else {
                 bool print = false;
                 for (int k = 0; k < nTail; k++) {
                     if (tailX[k] == j && tailY[k] == i) {
-                        cout << "o";  // Snake body
+                        cout << "o";
                         print = true;
                         break;
                     }
@@ -63,7 +67,7 @@ void Draw(const string &playerName) {
     cout << playerName << "'s Score: " << score << endl;
 }
 
-void Logic() {
+void GameEngine() {
     int prevX = tailX[0];
     int prevY = tailY[0];
     int prev2X, prev2Y;
@@ -87,10 +91,8 @@ void Logic() {
         default:    break;
     }
 
-
     if (x >= width) x = 0; else if (x < 0) x = width - 1;
     if (y >= height) y = 0; else if (y < 0) y = height - 1;
-
 
     for (int i = 0; i < nTail; i++) {
         if (tailX[i] == x && tailY[i] == y) {
@@ -98,12 +100,15 @@ void Logic() {
         }
     }
 
-
     if (x == fruitX && y == fruitY) {
         score += 10;
         fruitX = rand() % width;
         fruitY = rand() % height;
         nTail++;
+    }
+
+    if (x == bombX && y == bombY) {
+        gameOver = true;
     }
 }
 
@@ -136,13 +141,13 @@ int main() {
     string playerName;
     cout << "Enter your name: ";
     cin >> playerName;
-    srand(time(0));
+    srand(static_cast<unsigned>(time(0)));
     Setup();
 
     while (!gameOver) {
         Draw(playerName);
         Input();
-        Logic();
+        GameEngine();
         usleep(100000);
     }
 
