@@ -3,15 +3,26 @@
 #include <termios.h>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
 bool gameOver;
 const int width = 20;
 const int height = 17;
-int x, y, fruitX, fruitY, bombX, bombY, score;
+int x, y, score;
 int tailX[100], tailY[100];
 int nTail;
+const int numFruits = 5;
+const int numBombs = 3;
+struct Object {
+    int x;
+    int y;
+};
+
+Object fruits[numFruits];
+Object bombs[numBombs];
+
 enum Direction { STOP = 0, LEFT, RIGHT, UP, DOWN };
 Direction dir;
 
@@ -20,11 +31,17 @@ void Setup() {
     dir = STOP;
     x = width / 2;
     y = height / 2;
-    fruitX = rand() % width;
-    fruitY = rand() % height;
-    bombX = rand() % width;
-    bombY = rand() % height;
     score = 0;
+
+    for (int i = 0; i < numFruits; i++) {
+        fruits[i].x = rand() % width;
+        fruits[i].y = rand() % height;
+    }
+
+    for (int i = 0; i < numBombs; i++) {
+        bombs[i].x = rand() % width;
+        bombs[i].y = rand() % height;
+    }
 }
 
 void Draw(const string &playerName) {
@@ -39,22 +56,38 @@ void Draw(const string &playerName) {
                 cout << "|";
             if (i == y && j == x)
                 cout << "O";
-            else if (i == fruitY && j == fruitX)
-                cout << "F";
-            else if (i == bombY && j == bombX)
-                cout << "B";
             else {
-                bool print = false;
-                for (int k = 0; k < nTail; k++) {
-                    if (tailX[k] == j && tailY[k] == i) {
-                        cout << "o";
-                        print = true;
+                bool printFruit = false;
+                for (int k = 0; k < numFruits; k++) {
+                    if (i == fruits[k].y && j == fruits[k].x) {
+                        cout << "F";
+                        printFruit = true;
                         break;
                     }
                 }
-                if (!print)
+
+                bool printBomb = false;
+                for (int k = 0; k < numBombs; k++) {
+                    if (i == bombs[k].y && j == bombs[k].x) {
+                        cout << "B";
+                        printBomb = true;
+                        break;
+                    }
+                }
+
+                bool printTail = false;
+                for (int k = 0; k < nTail; k++) {
+                    if (tailX[k] == j && tailY[k] == i) {
+                        cout << "o";
+                        printTail = true;
+                        break;
+                    }
+                }
+
+                if (!printFruit && !printBomb && !printTail)
                     cout << " ";
             }
+
             if (j == width - 1)
                 cout << "|";
         }
@@ -100,15 +133,19 @@ void GameEngine() {
         }
     }
 
-    if (x == fruitX && y == fruitY) {
-        score += 10;
-        fruitX = rand() % width;
-        fruitY = rand() % height;
-        nTail++;
+    for (int i = 0; i < numFruits; i++) {
+        if (x == fruits[i].x && y == fruits[i].y) {
+            score += 10;
+            fruits[i].x = rand() % width;
+            fruits[i].y = rand() % height;
+            nTail++;
+        }
     }
 
-    if (x == bombX && y == bombY) {
-        gameOver = true;
+    for (int i = 0; i < numBombs; i++) {
+        if (x == bombs[i].x && y == bombs[i].y) {
+            gameOver = true;
+        }
     }
 }
 
